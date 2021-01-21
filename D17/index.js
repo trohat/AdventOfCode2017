@@ -5,7 +5,6 @@ const task1 = forwardLength => {
         value: 0,
     };
     current.next = current;
-    current.prev = current;
     for (let i = 1; i <= 2017; i++) {
         for (let j = 0; j < forwardLength; j++) {
             current = current.next;
@@ -13,18 +12,35 @@ const task1 = forwardLength => {
 
         current.next = {
             value: i,
-            prev: current,
             next: current.next
         };
         current = current.next;
-        current.next.prev = current;
     }
 
     return current.next.value;
 };
 
-const task2 = data => {
-    
+const task2 = forwardLength => {
+    current = {
+        value: 0,
+    };
+    current.next = current;
+    for (let i = 1; i <= 50000000; i++) {
+        if (i % 1000000 === 0) console.log(i);
+        for (let j = 0; j < forwardLength; j++) {
+            current = current.next;
+        }
+
+        current.next = {
+            value: i,
+            next: current.next
+        };
+        current = current.next;
+    }
+
+    while (current.value !== 0) current = current.next;
+
+    return current.next.value;
 }
 
 let testdata = 3;
@@ -39,4 +55,6 @@ console.log("");
 
 //doEqualTest(task2(testdata), 336);
 
-//console.log("Task 2: " + task2(inputdata));
+console.time();
+console.log("Task 2: " + task2(inputdata));
+console.timeEnd();
