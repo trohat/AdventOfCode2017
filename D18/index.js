@@ -7,30 +7,38 @@ const prepare = data => {
     const instructions = [];
     for (const line of data) {
         const [, inst, reg1, reg2] = re.exec(line);
-        instructions.push({ inst, reg1, reg2 });
+        instructions.push([inst, reg1, reg2 ]);
     }
     return instructions;
 };
 
-const task1 = instructions => {
+const SENDING = "sending";
+const WAITING = "waiting";
+const FINISHED = "finished";
+
+const createProgramIterator = function* (instructions, programID, task, inputField) {
     let registers = {};
     const valRe = /-?\d+/;
     for (const inst of instructions) {
-        if (!valRe.test(inst.reg1)) registers[inst.reg1] = 0;
+        if (!valRe.test(inst[1])) registers[inst[1]] = 0;
     }
+    registers["p"] = programID;
 
+    const valOrReg = (instruction, n) => {
+        if (valRe.test(instruction[n])) return +instruction[n];
+        return +registers[instruction[n]];
+    }
     let played = null;
     for (let i = 0; i < instructions.length; i++) {
         let inst = instructions[i];
-        let x = inst.reg1;
+        let x = inst[1];
         let y;
-        if (valRe.test(inst.reg2)) y = +inst.reg2;
-        else y = +registers[inst.reg2];
-        switch (inst.inst) {
+        y = valOrReg(inst, 2);
+        switch (inst[0]) {
             case "snd":
-                if (valRe.test(i.reg1)) x = +inst.reg1;
-                else x = +registers[inst.reg1];
-                played = x;
+                x = valOrReg(inst,1);
+                if (task === "task1") played = x;
+                else yield ({ state: SENDING, value: x});
                 break;
             case "set":
                 registers[x] = y;
@@ -45,26 +53,61 @@ const task1 = instructions => {
                 registers[x] %= y;
                 break;
             case "rcv":
-                if (x !== 0) return played;
+                if (x !== "0") {
+                    if (task === "task1") return played;
+                    else {
+                        while (inputField.length === 0) yield ({ state: WAITING});
+                        registers[x] = inputField.shift();
+                    }
+                }
                 break;
             case "jgz":
-                if (valRe.test(i.reg1)) x = +inst.reg1;
-                else x = +registers[inst.reg1];
+                x = valOrReg(inst,1)
                 if (x > 0) i += y - 1;
                 break;
             default:
                 console.error("Wrong switch statement.");
         }
     }
-    console.log(registers);
-
 };
 
-const task2 = data => {
+const task1 = instructions => {
+    let program = createProgramIterator(instructions, 0, "task1");
+    return program.next().value;
+};
 
-}
+const task2 = instructions => {
+    let p0outputs = [];
+    let p1outputs = [];
+    let program0 = createProgramIterator(instructions, 0, null, p1outputs);
+    let program1 = createProgramIterator(instructions, 1, null, p0outputs);
+    let p0state = SENDING;
+    let p1state = SENDING;
+    let program1Sent = 0;
+    let result;
+    while (p0state === SENDING || p1state === SENDING) {
+        result = program0.next();
+        if (result.done) p0state = FINISHED;
+        else {
+            p0state = result.value.state;
+            if (p0state === SENDING) p0outputs.push(result.value.value);
+        }
+        result = program1.next();
+        if (result.done) p1state = FINISHED;
+        else {
+            p1state = result.value.state;
+            if (p1state === SENDING) {
+                p1outputs.push(result.value.value);
+                program1Sent++;
+            }
+        }
+    }
 
-let testdata = `set a 1
+    return program1Sent;
+};
+
+
+let testdata0 = `set a 1
 add a 2
 mul a a
 mod a 5
@@ -75,18 +118,27 @@ jgz a -1
 set a 1
 jgz a -2`;
 
+let testdata1 = `snd 1
+snd 2
+snd p
+rcv a
+rcv b
+rcv c
+rcv d`;
+
 inputdata = prepare(splitLines(inputdata));
 
-testdata = prepare(splitLines(testdata));
+testdata0 = prepare(splitLines(testdata0));
+testdata1 = prepare(splitLines(testdata1));
 
 console.log("");
 
-doEqualTest(task1(testdata), 4);
+doEqualTest(task1(testdata0), 4);
 
 console.log("Task 1: " + task1(inputdata));
 
 console.log("");
 
-//doEqualTest(task2(testdata), 336);
+doEqualTest(task2(testdata1), 3);
 
-//console.log("Task 2: " + task2(inputdata));
+console.log("Task 2: " + task2(inputdata));
