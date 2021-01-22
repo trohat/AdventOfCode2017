@@ -77,33 +77,30 @@ const task1 = instructions => {
 };
 
 const task2 = instructions => {
-    let p0outputs = [];
-    let p1outputs = [];
-    let program0 = createProgramIterator(instructions, 0, null, p1outputs);
-    let program1 = createProgramIterator(instructions, 1, null, p0outputs);
-    let p0state = SENDING;
-    let p1state = SENDING;
-    let program1Sent = 0;
+
+    let programs = [];
+    let outputs = [[], []];
+    let programStates = [ SENDING, SENDING ];
+    for (let programID = 0; programID < 2; programID++) {
+        programs.push(createProgramIterator(instructions, programID, null, outputs[1-programID]));
+    }
+    let programID = 0;
+    let p1Sent = 0;
     let result;
-    while (p0state === SENDING || p1state === SENDING) {
-        result = program0.next();
-        if (result.done) p0state = FINISHED;
+    while (programStates[0] === SENDING || programStates[1] === SENDING) {
+        result = programs[programID].next();
+        if (result.done) programStates[programID] = FINISHED;
         else {
-            p0state = result.value.state;
-            if (p0state === SENDING) p0outputs.push(result.value.value);
-        }
-        result = program1.next();
-        if (result.done) p1state = FINISHED;
-        else {
-            p1state = result.value.state;
-            if (p1state === SENDING) {
-                p1outputs.push(result.value.value);
-                program1Sent++;
+            programStates[programID] = result.value.state;
+            if (programStates[programID] === SENDING) {
+                outputs[programID].push(result.value.value);
+                if (programID === 1) p1Sent++;
             }
         }
+        programID = (programID + 1) % 2;
     }
 
-    return program1Sent;
+    return p1Sent;
 };
 
 
