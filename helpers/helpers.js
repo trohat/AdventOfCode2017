@@ -34,6 +34,32 @@ Array.prototype.union = function (arrB) {
     return [...new Set([...this, ...arrB])].sort();
 }
 
+// jigsaw operations (first used in 2020 day 20)
+Array.prototype.rotateRight = function() {
+    let newTile = [];
+    for (let i = 0; i < this.length; i++) {
+        newTile.push("");
+    }
+    for (const line of this) {
+        for (let i = 0; i < line.length; i++) {
+            newTile[i] = line.charAt(i) + newTile[i];
+        }   
+    }
+    return newTile;
+}
+
+Array.prototype.rotateLeft = function() {
+    return this.rotateRight().rotateRight().rotateRight();
+}
+
+Array.prototype.flip = function() {
+    let newTile = [];
+    for (const line of this) { 
+        newTile.push(line.reverse());
+    }
+    return newTile;
+}
+
 // --- Strings ---
 
 // str.isupper()
