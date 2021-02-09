@@ -1,9 +1,8 @@
 console.log("AOC 2017 - Day 9: Stream Processing");
 
 const task = (stream, task) => {
-    let len = stream.length;
     let openGroups = 0;
-    let groups = 0;
+    //let groups = 0;
     let escape = false;
     let isGarbage = false;
     let garbage = 0;
@@ -31,14 +30,14 @@ const task = (stream, task) => {
         if (char === "}") {
             score += openGroups; 
             openGroups--;
-            groups++;
+            //groups++;
         }
     }
     console.assert(openGroups === 0);
 
     if (task === "task1") return score;
     if (task === "task2") return garbage;
-    return groups;
+    //return groups;
 };
 
 let testdata1 = `{}`;

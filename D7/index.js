@@ -21,9 +21,7 @@ const task1 = ([ tower, parents ]) => {
     let any = Object.keys(tower)[0];
     while(true) {
         if (any in parents) any = parents[any];
-        else {
-            return any;
-        }
+        else return any;
     }
 };
 

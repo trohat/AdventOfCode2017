@@ -1,6 +1,6 @@
 console.log("AOC 2017 - Day 21: Fractal Art");
 
-const splitLines = (data) => data.split(String.fromCharCode(10));
+const splitLines = data => data.split(String.fromCharCode(10));
 
 const prepare = input => {
     const twoTimesTwoRules = [];
